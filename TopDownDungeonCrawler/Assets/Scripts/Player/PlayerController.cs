@@ -29,6 +29,7 @@ public class PlayerController : EntityController
     {
         playerRigidBody.velocity = Vector2.zero;
         animator.SetBool("Running_RD", false);
+        animator.SetBool("Running_D", false);
 
         if (Input.GetKey(KeyCode.A)) // Left
         {
@@ -50,7 +51,7 @@ public class PlayerController : EntityController
         }
         else if (Input.GetKey(KeyCode.S)) // Down
         {
-            //animator.SetBool("IsRunning", true);
+            animator.SetBool("Running_D", true);
             playerRigidBody.velocity = new Vector2(playerRigidBody.velocity.x, -speed);
         }
     }
