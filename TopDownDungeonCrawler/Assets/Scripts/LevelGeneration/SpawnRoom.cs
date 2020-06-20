@@ -17,7 +17,8 @@ public class SpawnRoom : MonoBehaviour
             if (roomDetector == null)
             {
                 var roomIndex = Random.Range(0, levelGenerator.Rooms.Length);
-                Instantiate(levelGenerator.Rooms[roomIndex], transform.position, Quaternion.identity);
+                var instance = Instantiate(levelGenerator.Rooms[roomIndex], transform.position, Quaternion.identity);
+                Destroy(instance.GetComponent<BoxCollider2D>());
             }
         
             Destroy(gameObject);

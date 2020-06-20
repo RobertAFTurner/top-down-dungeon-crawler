@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using UnityEngine;
 
 public class LevelGeneration : MonoBehaviour
 {
@@ -6,12 +9,15 @@ public class LevelGeneration : MonoBehaviour
     private Transform[] startingPostions;
 
     [SerializeField]
-    public GameObject[] Rooms; // index 0 --> LR, index 1 --> LRB, index 2 --> LRT, index 3 --> LRBT 
+    public GameObject[] Rooms;
 
     [SerializeField]
     private LayerMask roomLayerMask;
 
+    private List<GameObject> createdRooms;
+
     public bool StopGeneration { get; private set; } = false;
+    private bool generationComplete = false;
 
     private int downCounter = 0;
     private int direction;
@@ -25,14 +31,29 @@ public class LevelGeneration : MonoBehaviour
     {
         var randStartingPos = Random.Range(0, startingPostions.Length);
         transform.position = startingPostions[randStartingPos].position;
-        Instantiate(Rooms[0], transform.position, Quaternion.identity);
+
+        createdRooms = new List<GameObject>();
+        createdRooms.Add(Instantiate(Rooms[0], transform.position, Quaternion.identity));
         direction = Random.Range(1, 6);
     }
 
     private void Update()
     {
+        if (generationComplete)
+            Destroy(gameObject);
+
         if(!StopGeneration)
             Move();
+        else
+        {
+            foreach(var room in createdRooms)
+            {
+                if(room != null)
+                    Destroy(room.gameObject.GetComponent<BoxCollider2D>());
+            }
+
+            generationComplete = true;
+        }
     }
    
     private void Move()
@@ -57,7 +78,7 @@ public class LevelGeneration : MonoBehaviour
 
         if (transform.position.x > minX)
         {
-            UpdatePositionAndCreateRoom(-moveAmount, 3, 6, 0, Rooms.Length);
+            UpdatePositionAndCreateRoom(-moveAmount, 3, 6, false, RoomType.Any);
         }
         else
         {
@@ -71,7 +92,7 @@ public class LevelGeneration : MonoBehaviour
 
         if (transform.position.x < maxX)
         {
-            UpdatePositionAndCreateRoom(moveAmount, 1, 6, 0, Rooms.Length);
+            UpdatePositionAndCreateRoom(moveAmount, 1, 6, false, RoomType.Any);
 
             if (direction == 3)
                 direction = 2;
@@ -91,25 +112,23 @@ public class LevelGeneration : MonoBehaviour
         if (transform.position.y > minY)
         {
             var roomDetector = Physics2D.OverlapCircle(transform.position, 1, roomLayerMask);
-            var room = roomDetector.GetComponent<RoomType>();
+            var room = roomDetector.GetComponent<RoomProperties>();
 
-            if (room.Type != 1 && room.Type != 3)
+            if (room.Type != RoomType.LeftRightBottom && room.Type != RoomType.LeftRightTopBottom)
             {
                 if (downCounter >= 2)
                 {
                     room.RoomDestruction();
-                    Instantiate(Rooms[3], transform.position, Quaternion.identity);
+                    CreateRoomAtCurrentPosition(RoomType.LeftRightTopBottom);
                 }
                 else
                 {
                     room.RoomDestruction();
-                    var bottomRoomIndex = Random.Range(1, 4);
-                    bottomRoomIndex = bottomRoomIndex == 2 ? 1 : bottomRoomIndex;
-                    Instantiate(Rooms[bottomRoomIndex], transform.position, Quaternion.identity);
+                    CreateRoomAtCurrentPosition(RoomType.LeftRightBottom, RoomType.LeftRightTopBottom);
                 }
             }
 
-            UpdatePositionAndCreateRoom(-moveAmount, 1, 6, 3, 4, true);
+            UpdatePositionAndCreateRoom(-moveAmount, 1, 6, true, RoomType.LeftRightTopBottom, RoomType.LeftRightTop);
         }
         else
         {
@@ -117,7 +136,7 @@ public class LevelGeneration : MonoBehaviour
         }
     }
 
-    private void UpdatePositionAndCreateRoom(float amountToMove, int directionMinRange, int directionMaxRange, int roomIndexMin, int roomIndexMax, bool moveOnY = false)
+    private void UpdatePositionAndCreateRoom(float amountToMove, int directionMinRange, int directionMaxRange, bool moveOnY, params RoomType[] roomType)
     {
         var newPos = !moveOnY ? new Vector2(transform.position.x + amountToMove, transform.position.y) :
                                 new Vector2(transform.position.x, transform.position.y + amountToMove);
@@ -125,7 +144,23 @@ public class LevelGeneration : MonoBehaviour
         transform.position = newPos;
         direction = Random.Range(directionMinRange, directionMaxRange);
 
-        var roomIndex = Random.Range(roomIndexMin, roomIndexMax);
-        Instantiate(Rooms[roomIndex], transform.position, Quaternion.identity);
+        CreateRoomAtCurrentPosition(roomType);
+    }
+
+    private void CreateRoomAtCurrentPosition(params RoomType[] roomType)
+    {
+        var roomIndex = 0;
+
+        if (!roomType.Contains(RoomType.Any))
+        {
+            var roomQuery = Rooms.Where(room => roomType.Contains(room.GetComponent<RoomProperties>().Type)).ToList();
+            roomIndex = Random.Range(0, roomQuery.Count);
+            createdRooms.Add(Instantiate(roomQuery[roomIndex], transform.position, Quaternion.identity));
+        }
+        else
+        {
+            roomIndex = Random.Range(0, Rooms.Length);
+            createdRooms.Add(Instantiate(Rooms[roomIndex], transform.position, Quaternion.identity));
+        }
     }
 }
