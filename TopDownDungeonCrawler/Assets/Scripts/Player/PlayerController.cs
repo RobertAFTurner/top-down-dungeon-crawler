@@ -11,6 +11,9 @@ public class PlayerController : EntityController
     [SerializeField]
     private Animator animator;
 
+    [SerializeField]
+    private Transform rendererTransform;
+
     private float jumpTime;
     private bool isJumping = false;
     private Rigidbody2D playerRigidBody;
@@ -34,13 +37,13 @@ public class PlayerController : EntityController
         if (Input.GetKey(KeyCode.A)) // Left
         {
             animator.SetBool("Running_RD", true);
-            transform.rotation = new Quaternion(0, 180, 0, 0);
+            rendererTransform.rotation = new Quaternion(0, 180, 0, 0);
             playerRigidBody.velocity = new Vector2(-speed, playerRigidBody.velocity.y);            
         }
         else if (Input.GetKey(KeyCode.D)) // Right
         {
             animator.SetBool("Running_RD", true);
-            transform.rotation = new Quaternion(0, 0, 0, 0);
+            rendererTransform.rotation = new Quaternion(0, 0, 0, 0);
             playerRigidBody.velocity = new Vector2(speed, playerRigidBody.velocity.y);            
         }
 
