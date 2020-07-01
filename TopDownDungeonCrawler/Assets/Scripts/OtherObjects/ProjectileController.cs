@@ -20,4 +20,17 @@ public class ProjectileController : MonoBehaviour
         projectileSpeed = speed;
         projectileAngle = angle;
     }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.tag == "Terrain")
+            Destroy(gameObject);
+
+
+        if (collision.tag == "Player")
+        {
+            collision.GetComponent<PlayerController>().TakeDamage(3);
+            Destroy(gameObject);
+        }
+    }
 }
