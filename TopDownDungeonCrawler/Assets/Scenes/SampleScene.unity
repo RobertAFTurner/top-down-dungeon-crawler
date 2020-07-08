@@ -1382,6 +1382,7 @@ MonoBehaviour:
   - {fileID: 1899229016}
   - {fileID: 1190782259}
   - {fileID: 869751560}
+  rendererTransform: {fileID: 1058830963}
   currentAttackPoint: {fileID: 0}
   attackRadius: 0.6
   mainCamera: {fileID: 519420031}

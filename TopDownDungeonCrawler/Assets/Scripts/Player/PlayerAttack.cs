@@ -1,14 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using UnityEditor;
+﻿using System.Linq;
 using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
     [SerializeField]
     Transform[] attackPoints;
+
+    [SerializeField]
+    private Transform rendererTransform;
 
     public Transform currentAttackPoint;
 
@@ -37,21 +36,23 @@ public class PlayerAttack : MonoBehaviour
         {
             animator.SetTrigger("Attack_S");
             currentAttackPoint = attackPoints[0];
+            rendererTransform.rotation = new Quaternion(0, 0, 0, 0);
         }
         else if (angle > -45 && angle < 45)
         {
             animator.SetTrigger("Attack_S");
             currentAttackPoint = attackPoints[1];
+            rendererTransform.rotation = new Quaternion(0, 180, 0, 0);
         }
         else if (angle < -45 && angle > -135)
         {
             currentAttackPoint = attackPoints[2];
-            //animator.SetTrigger("AttackUp");
+            animator.SetTrigger("Attack_U");
         }
         else if (angle > 45 && angle < 135)
         {
             currentAttackPoint = attackPoints[3];
-            //animator.SetTrigger("AttackDown");
+            animator.SetTrigger("Attack_D");
         }
     }
 
