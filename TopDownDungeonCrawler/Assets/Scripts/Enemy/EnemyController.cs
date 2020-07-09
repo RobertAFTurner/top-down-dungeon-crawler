@@ -28,6 +28,9 @@ public class EnemyController : EntityController
     [SerializeField]
     private GameObject projectile;
 
+    [SerializeField]
+    private Animator animator;
+
     public void Start()
     {
         attackTimer = attackRate;
@@ -46,16 +49,40 @@ public class EnemyController : EntityController
     private void HandleMove()
     {
         var distance = Vector3.Distance(player.transform.position, transform.position);
+        var attackDirection = (transform.position - player.transform.position).normalized;
+        var angle = Mathf.Atan2(attackDirection.y, attackDirection.x) * Mathf.Rad2Deg;
+
+        animator.SetBool("Move_Left", false);
+        animator.SetBool("Move_Right", false);
+        animator.SetBool("Move_Up", false);
+        animator.SetBool("Move_Down", false);
+
+        if ((angle < -135 && angle > -180) || (angle > 135 && angle < 180))
+        {        
+            animator.SetBool("Move_Right", true);
+        }
+        else if (angle > -45 && angle < 45)
+        {
+            animator.SetBool("Move_Left", true);
+        }
+        else if (angle < -45 && angle > -135)
+        {
+            animator.SetBool("Move_Up", true);
+        }
+        else if (angle > 45 && angle < 135)
+        {
+            animator.SetBool("Move_Down", true);
+        }
 
         if (distance < retreatRange)
         {
             MoveAway();
-            Attack();
+            Attack(angle);
         }
 
         else if (distance > retreatRange && distance < attackRange)
         {
-            Attack();
+            Attack(angle);
         }
         else if (distance > attackRange && distance < engageRange)
         {
@@ -75,14 +102,10 @@ public class EnemyController : EntityController
         transform.position = Vector3.MoveTowards(transform.position, player.transform.position, step);
     }
 
-    private void Attack()
-    {
+    private void Attack(float angle)
+    { 
         if (attackTimer < 0)
         {
-            var attackDirection = (transform.position - player.transform.position).normalized;
-            var angle = Mathf.Atan2(attackDirection.y, attackDirection.x) * Mathf.Rad2Deg;
-
-
             var instance = Instantiate(projectile, transform.position, Quaternion.identity);
             instance.GetComponent<ProjectileController>().Initialize(angle, 15);
             attackTimer = attackRate;
@@ -101,6 +124,8 @@ public class EnemyController : EntityController
 
     private void OnDrawGizmosSelected()
     {
+        Gizmos.DrawLine(transform.position, player.transform.position);
+
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, retreatRange);
 
